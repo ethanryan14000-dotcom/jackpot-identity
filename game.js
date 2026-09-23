@@ -251,7 +251,7 @@ var U = {};
 var ATTR = {};
 if (prog) {
   var unames = ['uProj','uView','uModel','uNrmMat','uBase','uEmis','uGlowCol','uEye','uEmisAmt','uGlow','uAlpha'];
-  for (var ui = 0; ui < unames.length; ui++) U[unames[ui]] = gl.getUniformLocation(prog, unames[ui]);
+  for (var uix = 0; uix < unames.length; uix++) U[unames[uix]] = gl.getUniformLocation(prog, unames[uix]);
   ATTR.aPos = gl.getAttribLocation(prog, 'aPos');
   ATTR.aNrm = gl.getAttribLocation(prog, 'aNrm');
   if (ATTR.aPos < 0 || ATTR.aNrm < 0) {
