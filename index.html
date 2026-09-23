@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jackpot Identity</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#05040a;color:#e8e6f2;
+  font-family:Inter,"Segoe UI",system-ui,sans-serif;-webkit-user-select:none;user-select:none}
+canvas{position:fixed;inset:0;display:block}
+button{font:inherit;cursor:pointer;border:1px solid transparent;transition:.15s}
+.hud{position:fixed;inset:0;pointer-events:none;z-index:10}
+.hud button{pointer-events:auto}
+#top{display:flex;justify-content:space-between;gap:14px;padding:14px 16px;flex-wrap:wrap}
+.panel{background:rgba(10,9,18,.72);border:1px solid rgba(150,170,255,.18);
+  border-radius:10px;padding:11px 13px;min-width:200px}
+.ptitle{font-size:10px;letter-spacing:.22em;color:#ffd166;margin-bottom:8px;font-weight:700}
+.row{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.08em;padding:2.5px 0}
+.row .k{color:#9c9ab0}
+.row .v{font-weight:700}
+.meter{height:4px;border-radius:2px;background:rgba(255,255,255,.09);overflow:hidden;margin:3px 0 8px}
+.meter i{display:block;height:100%;width:0;transition:width .4s}
+.m-t{background:linear-gradient(90deg,#2b6fe0,#5ac8ff,#ffd166)}
+.m-i{background:linear-gradient(90deg,#7a4bd0,#ff7ab8)}
+.m-a{background:linear-gradient(90deg,#ffd166,#7CFFB2)}
+#regions{list-style:none;font-size:11px}
+#regions li{display:flex;align-items:center;gap:7px;padding:2px 0;color:#9c9ab0}
+#regions li b{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.16);flex:none}
+#regions li span{flex:1}
+#regions li em{font-style:normal;font-size:10px;opacity:.7}
+#regions li.p{color:#e8e6f2}#regions li.p b{background:#5ac8ff}
+#regions li.d{color:#ffd166}#regions li.d b{background:#ffd166;box-shadow:0 0 7px #ffd166}
+#bottom{position:absolute;left:0;right:0;bottom:0;padding:0 16px 16px;display:flex;
+  flex-direction:column;gap:9px;align-items:center}
+#choices,#actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+.ch{font-size:11px;letter-spacing:.14em;font-weight:700;padding:8px 15px;border-radius:99px;
+  background:rgba(10,9,18,.82);color:#9c9ab0;border:1px solid rgba(150,170,255,.2)}
+.ch:hover{color:#e8e6f2;border-color:#5ac8ff}
+.ch.on{background:linear-gradient(180deg,rgba(90,200,255,.3),rgba(43,111,224,.22));
+  color:#fff;border-color:#5ac8ff}
+.ch:disabled{opacity:.32;cursor:default}
+#actions button{font-size:11.5px;letter-spacing:.13em;font-weight:700;padding:11px 19px;border-radius:8px}
+.primary{background:linear-gradient(180deg,#2b6fe0,#173c8a);color:#fff;border-color:#5ac8ff}
+.primary:disabled{opacity:.38;cursor:default}
+.ghost{background:rgba(255,255,255,.05);color:#9c9ab0;border-color:rgba(150,170,255,.2)}
+#sub{position:absolute;left:50%;transform:translateX(-50%);bottom:126px;max-width:640px;
+  text-align:center;font-size:15px;line-height:1.5;padding:8px 16px;border-radius:8px;
+  background:rgba(5,4,10,.5);text-shadow:0 2px 12px #000;opacity:0;transition:.3s}
+#sub.on{opacity:1}
+#sub.woman{color:#ffe6a8;font-style:italic}
+#sub.machine{color:#5ac8ff;letter-spacing:.07em;font-weight:700;font-style:normal}
+#hint{position:absolute;left:50%;transform:translateX(-50%);top:52%;font-size:12px;
+  letter-spacing:.13em;color:rgba(255,255,255,.72);opacity:0;transition:.25s}
+#hint.on{opacity:1}
+#toast{position:absolute;left:50%;top:20px;transform:translateX(-50%);font-size:11.5px;
+  letter-spacing:.13em;color:#ffd166;background:rgba(5,4,10,.85);
+  border:1px solid rgba(255,209,102,.35);padding:8px 16px;border-radius:99px;opacity:0;transition:.3s}
+#toast.on{opacity:1}
+.ov{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,rgba(20,18,40,.88),rgba(3,3,7,.97))}
+.ov.on{display:flex}
+.ovin{max-width:620px;text-align:center;padding:34px 28px;max-height:100vh;overflow-y:auto}
+#title h1{font-size:clamp(30px,7vw,56px);letter-spacing:.15em;font-weight:800;margin-bottom:9px;
+  background:linear-gradient(180deg,#fff,#ffd166 55%,#b8860b);-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.tag{color:#9c9ab0;font-size:13px;letter-spacing:.07em;margin-bottom:22px}
+.help{font-size:12.5px;color:#9c9ab0;line-height:1.9;margin-bottom:22px}
+.help b{color:#e8e6f2}
+.brow{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.brow button{font-size:12.5px;letter-spacing:.13em;font-weight:700;padding:12px 22px;border-radius:8px}
+.fine{font-size:10.5px;color:#6a6880;line-height:1.6;margin-top:14px}
+#cine{background:radial-gradient(ellipse at 50% 50%,rgba(20,40,90,.6),rgba(3,3,7,.95))}
+#clabel{font-size:11px;letter-spacing:.42em;color:#ffd166;font-weight:700;margin-bottom:18px}
+#ctext{font-size:clamp(16px,2.3vw,22px);line-height:1.6;color:#fff;margin-bottom:28px}
+#ending h1{font-size:clamp(26px,5vw,42px);letter-spacing:.11em;font-weight:800;margin-bottom:18px}
+#ekick{font-size:10.5px;letter-spacing:.42em;color:#ffd166;margin-bottom:11px}
+#eport{font-size:12px;line-height:1.7;color:#5ac8ff;margin-bottom:18px}
+#etext{font-size:14.5px;line-height:1.75;text-align:left;margin-bottom:24px}
+#etext p{margin-bottom:12px}
+#err{background:rgba(3,3,7,.98)}
+#err h1{font-size:26px;letter-spacing:.09em;margin-bottom:16px;color:#ff7ab8}
+#err p{font-size:14px;line-height:1.7;margin-bottom:16px;text-align:left}
+#sk{font-size:11px;letter-spacing:.13em;padding:9px 16px;border-radius:7px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="hud" id="hud">
+  <div id="top">
+    <div class="panel">
+      <div class="ptitle">THE LEDGER</div>
+      <div class="row"><span class="k">SPINS</span><span class="v" id="v-spins">0</span></div>
+      <div class="row"><span class="k">TRANSFORMATION</span><span class="v" id="v-prog">0%</span></div>
+      <div class="meter"><i class="m-t" id="b-prog"></i></div>
+      <div class="row"><span class="k">IDENTITY</span><span class="v" id="v-id">0</span></div>
+      <div class="meter"><i class="m-i" id="b-id"></i></div>
+      <div class="row"><span class="k">AUTONOMY</span><span class="v" id="v-aut">100</span></div>
+      <div class="meter"><i class="m-a" id="b-aut"></i></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">THE LADY'S FORTUNE</div>
+      <ul id="regions"></ul>
+    </div>
+  </div>
+  <div id="bottom">
+    <div id="choices"></div>
+    <div id="actions"></div>
+  </div>
+  <div id="sub"></div>
+  <div id="hint"></div>
+  <div id="toast"></div>
+</div>
+
+<div class="ov on" id="title"><div class="ovin">
+  <h1>JACKPOT&nbsp;IDENTITY</h1>
+  <p class="tag">The house always wins. The house decides what you win.</p>
+  <div class="help">
+    <div><b>Drag</b> to look &nbsp;&middot;&nbsp; <b>Space</b> spin &nbsp;&middot;&nbsp; <b>M</b> mirror &nbsp;&middot;&nbsp; <b>F</b> stand</div>
+    <div><b>W A S D</b> walk once you can stand &nbsp;&middot;&nbsp; <b>H</b> hide HUD</div>
+  </div>
+  <div class="brow"><button class="primary" id="btn-start">BEGIN</button></div>
+  <p class="fine">Every character depicted is an adult.<br>Fictional casino, fictional currency, no gambling.</p>
+</div></div>
+
+<div class="ov" id="cine"><div class="ovin">
+  <div id="clabel">CHEST</div>
+  <div id="ctext"></div>
+  <button class="ghost" id="sk">SKIP</button>
+</div></div>
+
+<div class="ov" id="ending"><div class="ovin">
+  <div id="ekick">ENDING</div>
+  <h1 id="etitle">CASH OUT</h1>
+  <div id="eport"></div>
+  <div id="etext"></div>
+  <div class="brow"><button class="primary" id="btn-again">PLAY AGAIN</button></div>
+</div></div>
+
+<div class="ov" id="err"><div class="ovin">
+  <h1>CANNOT START</h1>
+  <p id="errmsg"></p>
+  <div class="help" id="errhelp"></div>
+  <div class="brow"><button class="primary" id="btn-reload">TRY AGAIN</button></div>
+</div></div>
+
+<script src="game.js"></script>
+</body>
+</html>
